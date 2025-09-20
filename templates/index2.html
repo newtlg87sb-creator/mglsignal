@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8" />
+    <title>{{ text.title }}</title>
+    <style>
+        /* Nice soft gradient background */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0f0f0f, #1e1e1e); /* deep dark gradient */
+            color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            color: #f5f5f5;
+        }
+
+        #prices {
+            max-width: 700px;
+            margin: 0 auto 40px auto;
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+        }
+
+        #latest-prices {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 250px;
+            padding: 20px;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+            z-index: 10;
+        }
+
+        .symbol {
+            margin: 10px 0;
+            padding: 10px 15px;
+            background-color: #2a2a2a;
+            border-radius: 6px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #f5f5f5;
+        }
+
+        .symbol strong {
+            flex: 1;
+            color: #ffffff;
+        }
+
+        .price {
+            margin-left: 10px;
+            color: #e0e0e0;
+            font-weight: 500;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .signal {
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 5px;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .buy {
+            color: #00ff89;  /* Binance green */
+            background-color: rgba(0, 255, 137, 0.1);
+        }
+
+        .sell {
+            color: #ff4d4d;  /* Binance red */
+            background-color: rgba(255, 77, 77, 0.1);
+        }
+
+        .hold {
+            color: #bbbbbb;
+            background-color: rgba(200, 200, 200, 0.1);
+        }
+
+        .rsi {
+            margin-left: 15px;
+            font-weight: 500;
+            color: #f39c12; /* orange/gold */
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .custom-signal {
+            margin-left: 15px;
+            font-weight: 700;
+            color: #00bcd4; /* cyan */
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .tradingview-widget-container {
+            max-width: 700px;
+            margin: 0 auto;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(255,255,255,0.05);
+        }
+
+        /* Language selector styling */
+        #language-selector {
+            display: block;
+            margin: 0 auto 25px auto;
+            font-size: 16px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #2a2a2a;
+            color: #f0f0f0;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Language selector -->
+    <select id="language-selector">
+      <option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
+      <option value="es" {% if lang == 'es' %}selected{% endif %}>Español</option>
+      <option value="mn" {% if lang == 'mn' %}selected{% endif %}>Mongolia</option>
+    </select>
+
+    <h1>{{ text.heading }}</h1>
+    <div id="prices">
+        <!-- Prices will load here -->
+    </div>
+
+    <!-- TradingView GOLD chart widget -->
+    <div class="tradingview-widget-container" style="margin-top: 30px;">
+        <div id="tradingview_gold" style="height: 400px; width: 100%;"></div>
+    </div>
+
+    <!-- TradingView widget script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script type="text/javascript">
+      new TradingView.widget({
+        "container_id": "tradingview_gold",
+        "width": "100%",
+        "height": 400,
+        "symbol": "OANDA:XAUUSD",
+        "interval": "60",
+        "timezone": "Etc/UTC",
+        "theme": "light",
+        "style": "1",
+        "locale": "{{ lang }}",
+        "toolbar_bg": "#f1f3f6",
+        "enable_publishing": false,
+        "hide_top_toolbar": false,
+        "withdateranges": true,
+        "allow_symbol_change": true,
+        "details": true,
+        "hotlist": true,
+        "calendar": true,
+        "studies": [
+          "MASimple@tv-basicstudies"
+        ]
+      });
+    </script>
+
+    <script>
+    // Language selector logic: reload page with lang param
+    document.getElementById('language-selector').addEventListener('change', function() {
+        const selectedLang = this.value;
+        const url = new URL(window.location);
+        url.searchParams.set('lang', selectedLang);
+        window.location.href = url.toString();
+    });
+
+    async function fetchPrices() {
+    const response = await fetch('/prices');
+    const data = await response.json();
+    console.log("Fetched data:", data);  // Add logging here to verify the data
+
+    let html = '';
+    data.forEach(item => {
+        let signalClass = 'hold';
+        if (item.signal === 'BUY') signalClass = 'buy';
+        else if (item.signal === 'SELL') signalClass = 'sell';
+
+        html += `<div class="symbol">
+                    <strong>${item.symbol}</strong> 
+                    <span class="price">Price: ${item.price}</span>
+                    <span class="signal ${signalClass}">${item.signal}</span>
+                    <span class="rsi">RSI: ${item.rsi}</span>
+                    <span class="custom-signal">${item.custom_signal}</span>
+                </div>`;
+    });
+    
+
+    document.getElementById('prices').innerHTML = html;
+}
+
+    fetchPrices();  // Initial load
+    setInterval(fetchPrices, 500);  // Refresh every 0.5 sec
+    </script>
+
+</body>
+</html>

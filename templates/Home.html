@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8" />
+    <title>{{ text.title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0f0f0f, #1e1e1e);
+            color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* Navigation bar styling */
+        nav {
+            background-color: #1c1c1c;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        nav .menu {
+            display: flex;
+            gap: 20px;
+        }
+
+        nav a {
+            color: #f5f5f5;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #f0b90b; /* Binance Orange */
+        }
+
+        #language-container {
+            margin-left: auto;
+        }
+
+        #language-selector {
+            font-size: 14px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: none;
+            background-color: #2a2a2a;
+            color: #f0f0f0;
+            cursor: pointer;
+        }
+
+        main {
+            padding: 40px 20px;
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation bar -->
+    <nav>
+        <div class="menu">
+            <a href="#">{{ text.menu.signal }}</a>
+            <a href="#">{{ text.menu.about }}</a>
+            <a href="#">{{ text.menu.contact }}</a>
+            <a href="#">{{ text.menu.signin }}</a>
+            <a href="#">{{ text.menu.signup }}</a>
+        </div>
+
+
+        <!-- Language selector in nav bar -->
+        <div id="language-container">
+            <select id="language-selector">
+                <option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
+                <option value="es" {% if lang == 'es' %}selected{% endif %}>Español</option>
+                <option value="mn" {% if lang == 'mn' %}selected{% endif %}>Монгол</option>
+            </select>
+        </div>
+    </nav>
+
+    <main>
+        <h1>{{ text.heading }}</h1>
+    </main>
+
+    <script>
+        document.getElementById('language-selector').addEventListener('change', function () {
+            const selectedLang = this.value;
+            const url = new URL(window.location.href);
+            url.searchParams.set('lang', selectedLang);
+            window.location.href = url.toString();
+        });
+    </script>
+</body>
+</html>
